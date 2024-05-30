@@ -3,6 +3,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
+import pandas as pd
+from bs4 import BeautifulSoup
+import requests
 
 driver = webdriver.Chrome()
 
@@ -19,31 +22,50 @@ driver.find_element(By.ID, 'Email').send_keys('cuongvnguyen1104@gmail.com')
 driver.find_element(By.ID, 'pw').send_keys('hozki4-mizhyb-muzDid')
 
 # Wait for the user to solve the reCAPTCHA
-time.sleep(30)
+time.sleep(60)
 
 # Click the submit button
 driver.find_element(By.ID, 'Login').click()
 
-try:
-    # Wait for the specific heading with ID 'my_test_results_heading' to be present
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, 'My Test Results'))
-    )
-    
-    # Find the specific heading element
-    heading_element = driver.find_element(By.ID, 'My Test Results')
-    
-    # Find all links following the heading
-    links = heading_element.find_element(By.LINK_TEXT, 'NCMHCE Practice Exams')
-    
-    # Click on the first four links
-    for link in links[:4]:
-        link.click()
-        
-    print("Clicked on the first four links following the heading with ID 'my_test_results_heading'")
-    
-except Exception as e:
-    print(f"Failed to click on links: {e}")
+# Wait for the user to navigate to study mode and appropriate settings
+WebDriverWait(driver, 20).until(
+    EC.presence_of_element_located((By.CSS_SELECTOR, 'span.pt-title'))
+)
+
+case_study_element = driver.find_element(By.CSS_SELECTOR, 'span.pt-title')
+case_study_text = case_study_element.text
+
+
+####
+WebDriverWait(driver, 20).until(
+    EC.presence_of_element_located((By.CSS_SELECTOR, 'div.scenario#sceneall'))
+)
+scenario_element = driver.find_element(By.CSS_SELECTOR, 'div.scenario#sceneall')
+
+# Extract text from the scenario element
+scenario_text = scenario_element.text
+
+# Split the text into lines
+lines = scenario_text.split('\n')
+
+# Initialize variables to store information
+info = {}
+current_key = None
+
+# Iterate through lines and extract key-value pairs
+for line in lines:
+    if line.startswith('<strong>'):
+        current_key = line.replace('<strong>', '').replace('</strong>', '').strip()
+    elif line.startswith('<or>'):
+        continue
+    elif line.strip():
+        if current_key:
+            info[current_key] = line.strip()
+
+# Print or process the extracted information as needed
+print(info)
+
+
 
 # Close the browser
-driver.quit()
+#driver.quit()
